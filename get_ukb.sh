@@ -16,14 +16,31 @@ ii=`printf "%02d" $i`
 ./plink2 --bgen ~/data/bbimp/dosage_bgen/data.chr$ii.bgen --sample ~/data/bbimp/data.sample --extract snplist.txt --keep keeplist.txt --make-bed --out extract$i
 done
 
-echo "extract2" > mergelist.txt
-for i in {3..22}
+
+for i in {1..22}
 do
-	echo "extract$i" >> mergelist.txt
+	cat extract$i.bim | cut -f 2 | sort | uniq -c | sed 's/^ *//' | grep -v ^1 | cut -d " " -f 2 > temp$i
+	wc -l temp$i
+	plink --bfile extract$i --exclude temp$i --make-bed --out extract${i}_nomult
 done
 
-plink --bfile extract1 --merge-list mergelist --make-bed --out ukb_ref
 
-rm extract*
+#for i in {1..22}
+#do
+#	mv extract$i.bim extract$i.bim.orig
+#	awk 'BEGIN {OFS="\t"} { print $1, $1":"$4"_"$5"->"$6, $3, $4, $5, $6}' extract$i.bim.orig > extract$i.bim
+#	paste <(cut -f 2 extract$i.bim.orig) extract$i.bim > rs_ids$i.txt
+#done
+
+
+echo "extract2_nomult" > mergelist.txt
+for i in {3..22}
+do
+	echo "extract${i}_nomult" >> mergelist.txt
+done
+
+plink --bfile extract1_nomult --merge-list mergelist --make-bed --out ukb_ref
+
+# rm extract*
 
 
